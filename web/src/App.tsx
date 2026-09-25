@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { CreateForm } from "@/components/app/create-form";
 import { FilmsPage } from "@/components/app/films-page";
@@ -26,6 +27,7 @@ function remember(id: string | null) {
 }
 
 export default function App() {
+  const { t } = useT();
   const [config, setConfig] = useState<Config | null>(null);
   const [films, setFilms] = useState<Film[]>([]);
   const [filmsLoading, setFilmsLoading] = useState(true);
@@ -159,9 +161,9 @@ export default function App() {
             <header className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-medium tracking-tight">
-                  <TextReveal text="Make a film" />
+                  <TextReveal text={t("Make a film")} />
                 </h1>
-                <p className="mt-1 text-sm text-muted-foreground">Pick a topic, a look and a voice. The rest is directed for you.</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("Pick a topic, a look and a voice. The rest is directed for you.")}</p>
               </div>
               <AgentPromptButton />
             </header>

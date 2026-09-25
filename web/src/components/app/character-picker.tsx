@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { motion } from "motion/react";
 import { Check, Expand, ImagePlus, Pause, Search, Sparkles, Volume2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -37,6 +38,7 @@ type Props = {
 export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, lang }: Props) {
   const player = usePlayer();
   const [view, setView] = useState<{ items: LightboxItem[]; i: number } | null>(null);
+  const { t } = useT();
   const [group, setGroup] = useState("All");
   const [q, setQ] = useState("");
   const isCast = (id: string) => value.kind === "cast" && value.id === id;
@@ -53,10 +55,10 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
         <div className="-mx-1 min-w-0 overflow-x-auto px-1">
           <Tabs value={group} onValueChange={setGroup} variant="segment">
             <TabsList>
-              <TabsTrigger value="All">All {cast.length}</TabsTrigger>
+              <TabsTrigger value="All">{t("All")} {cast.length}</TabsTrigger>
               {groups.map((g) => (
                 <TabsTrigger key={g} value={g}>
-                  {g} <span className="ml-1 opacity-50">{cast.filter((c) => c.group === g).length}</span>
+                  {t(g)} <span className="ml-1 opacity-50">{cast.filter((c) => c.group === g).length}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -64,7 +66,7 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
         </div>
         <label className="ml-auto flex h-9 min-w-44 items-center gap-2 rounded-full border border-border bg-background/50 px-3 text-sm focus-within:border-border-strong">
           <Search className="size-3.5 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a character" className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Find a character")} className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground" />
         </label>
       </div>
       <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-9">
@@ -73,8 +75,8 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
             <span className="flex size-9 items-center justify-center rounded-full bg-muted">
               <Sparkles className="size-4 text-accent" />
             </span>
-            <span className="text-[12.5px] font-semibold">Invent one</span>
-            <span className="text-[10.5px] leading-snug text-muted-foreground">A new character for your topic, in any look</span>
+            <span className="text-[12.5px] font-semibold">{t("Invent one")}</span>
+            <span className="text-[10.5px] leading-snug text-muted-foreground">{t("A new character for your topic, in any look")}</span>
           </div>
           {value.kind === "new" && <Ring />}
         </button>
@@ -92,8 +94,8 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
                 <span className="flex size-9 items-center justify-center rounded-full bg-muted">
                   <ImagePlus className="size-4" />
                 </span>
-                <span className="text-[12.5px] font-semibold">Your own</span>
-                <span className="text-[10.5px] leading-snug text-muted-foreground">Upload a character, we redraw it</span>
+                <span className="text-[12.5px] font-semibold">{t("Your own")}</span>
+                <span className="text-[10.5px] leading-snug text-muted-foreground">{t("Upload a character, we redraw it")}</span>
               </>
             )}
           </div>

@@ -68,8 +68,13 @@ export function shotPrompt(c: Who, motion: string, b: { scene: string; action: s
   return `Image 1 is the opening frame of this shot: ${b.scene} ${body} ${tail}`;
 }
 
-export function endCardPrompt(title: string, subtitle: string, anchor: string) {
+export function endCardPrompt(title: string, subtitle: string, anchor: string, lang = "en") {
+  const marks =
+    lang === "vi"
+      ? "The words are Vietnamese: copy every letter and every diacritic (ă â đ ê ô ơ ư and the tone marks ´ ` ̉ ˜ ̣) exactly as written, one tone mark per syllable, never drop or move an accent. "
+      : "";
   return (
+    marks +
     `Keep this illustration exactly as it is and add the film title hand-lettered in the calm open space of the upper third: ` +
     `"${title}" large, and below it, smaller, "${subtitle}". Lettering drawn in the same medium and palette as the ` +
     `illustration, perfectly spelled, centred, nothing else added. ${anchor}`
@@ -570,7 +575,7 @@ export class Film {
     if (this.st.card_clip) return;
     const p = this.plan;
     const tailKey = this.specs.find((s) => s.shot === p.tail.shot)!.key_url!;
-    const prompt = endCardPrompt(p.title, p.subtitle, this.style.anchor);
+    const prompt = endCardPrompt(p.title, p.subtitle, this.style.anchor, this.rec.lang);
     let card: string;
     try {
       const r = await run<{ images: { url: string }[] }>(EDIT, { image_urls: [tailKey], prompt, image_size: FRAME, quality: "high" });

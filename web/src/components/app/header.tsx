@@ -3,6 +3,7 @@ import { SharedLayoutBg } from "@/components/motion/shared-layout-bg";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { Link, usePath } from "@/lib/router";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -13,10 +14,11 @@ const NAV = [
 type KeyProps = { hasKey?: boolean; onKey?: () => void; onDisconnect?: () => void };
 
 function KeyButton({ hasKey, onKey, onDisconnect }: KeyProps) {
+  const { t } = useT();
   if (!hasKey)
     return (
       <button type="button" onClick={onKey} className="ml-1 inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-foreground px-3.5 text-sm font-medium text-background transition-opacity hover:opacity-90 sm:ml-2">
-        <KeyRound className="size-3.5" /> <span className="hidden sm:inline">Connect fal key</span>
+        <KeyRound className="size-3.5" /> <span className="hidden sm:inline">{t("Connect fal key")}</span>
         <span className="sm:hidden">Key</span>
       </button>
     );
@@ -24,7 +26,7 @@ function KeyButton({ hasKey, onKey, onDisconnect }: KeyProps) {
     <span className="ml-1 inline-flex h-10 shrink-0 items-center gap-1 rounded-full border border-border pr-1 pl-3 text-sm text-muted-foreground sm:ml-2">
       <span className="size-1.5 rounded-full bg-success" />
       <span className="hidden sm:inline">fal key</span>
-      <button type="button" onClick={onDisconnect} title="Remove the key from this browser" aria-label="Remove the fal key" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
+      <button type="button" onClick={onDisconnect} title={t("Remove the key from this browser")} aria-label="Remove the fal key" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
         <X className="size-3.5" />
       </button>
     </span>
@@ -33,6 +35,7 @@ function KeyButton({ hasKey, onKey, onDisconnect }: KeyProps) {
 
 export function Header({ hasKey, onKey, onDisconnect }: KeyProps) {
   const path = usePath();
+  const { t, lang, setLang } = useT();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6">
@@ -52,10 +55,19 @@ export function Header({ hasKey, onKey, onDisconnect }: KeyProps) {
                   (n.to === "/" ? path === "/" : path.startsWith(n.to)) ? "bg-card text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {n.label}
+                {t(n.label)}
               </Link>
             ))}
           </SharedLayoutBg>
+          <button
+            type="button"
+            onClick={() => setLang(lang === "vi" ? "en" : "vi")}
+            title={lang === "vi" ? "Switch to English" : "Chuyển sang tiếng Việt"}
+            aria-label="Language"
+            className="ml-1 grid h-10 shrink-0 place-items-center rounded-full border border-border px-3 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground sm:ml-2"
+          >
+            {lang === "vi" ? "VI" : "EN"}
+          </button>
           <KeyButton hasKey={hasKey} onKey={onKey} onDisconnect={onDisconnect} />
           <ThemeToggle
             variant="circle-blur"

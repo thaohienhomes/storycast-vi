@@ -77,13 +77,17 @@ export async function directorSystem(style: StyleFull, minutes: number, lang: st
     voiceRule = `- "voice_id": pick the best matching voice for the character from:\n${voices}`;
   }
   const language = await languageName(lang);
+  const local =
+    lang === "vi"
+      ? `\n- Vietnamese: write natural spoken Vietnamese (not translated English) with full, correct diacritics. Spell numbers and years as words so they are read aloud correctly. When the topic is Vietnamese (history, legends, food, places), keep names, customs and dates accurate and show Vietnamese settings, clothing and architecture faithfully.`
+      : "";
   return `You are the director of a short narrated character film. One original character narrates a story that explains a topic to a general audience. Visual style: ${style.label}.
 Return ONLY one JSON object, no prose, no markdown fences.
 
 RULES
 ${charRule}
 - Script: exactly ${n} blocks, exactly ${talk} of them "T" (the character talks on camera); the rest are "V" (voice-over under cinematic shots). Block 1 is "V" and the last block is "V". Beyond that the story is yours: structure, tone, jokes, twists and how the character enters are your creative choices.
-- Text length: V blocks ${vw} words; T blocks ${tw} words. Language of all narration: ${language}. Spoken rhythm, one idea per block. Facts must be accurate; hedge legends and uncertain claims ("legend says").
+- Text length: V blocks ${vw} words; T blocks ${tw} words. Language of all narration: ${language}. Spoken rhythm, one idea per block. Facts must be accurate; hedge legends and uncertain claims ("legend says").${local}
 - Continuity: the film is one continuous story. Every block grows out of the one before it in place, time and logic. Whenever the setting, the time or the subject changes, the viewer sees or hears how and why we got there; never cut to a new place, companion or subject as if the viewer already knew. How you bridge is up to this story.
 - Stay inside the story: never say "this video" and never state how long the film is.
 - For every block:
