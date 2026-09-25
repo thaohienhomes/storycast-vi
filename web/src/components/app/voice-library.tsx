@@ -12,6 +12,7 @@ import { EASE_OUT, SPRING_LAYOUT } from "@/lib/ease";
 import { usePlayer } from "@/lib/use-player";
 import { cn } from "@/lib/utils";
 import { api, type Voice, type VoiceFacets, type VoiceQuery } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 const EMPTY: VoiceQuery = { search: "", gender: "", age: "", accent: "", category: "", language: "", sort: "popular", curated: false, tags: [] };
 
@@ -92,6 +93,7 @@ type Props = {
 };
 
 export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSelect }: Props) {
+  const { t } = useT();
   const [facets, setFacets] = useState<VoiceFacets | null>(null);
   const [q, setQ] = useState<VoiceQuery>(EMPTY);
   const [search, setSearch] = useState("");
@@ -119,8 +121,8 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
   }, [open, facets, stopPlayer]);
 
   useEffect(() => {
-    const t = setTimeout(() => setQ((prev) => (prev.search === search ? prev : { ...prev, search })), 250);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setQ((prev) => (prev.search === search ? prev : { ...prev, search })), 250);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const fetchPage = useCallback(async (query: VoiceQuery, p: number) => {
@@ -159,9 +161,9 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
   const tagList = useMemo(() => {
     const tags = facets?.tags ?? [];
     const needle = tagSearch.toLowerCase().trim();
-    const hits = needle ? tags.filter((t) => t.tag.includes(needle)) : tags;
-    const chosen = hits.filter((t) => q.tags.includes(t.tag));
-    const rest = hits.filter((t) => !q.tags.includes(t.tag));
+    const hits = needle ? tags.filter((x) => x.tag.includes(needle)) : tags;
+    const chosen = hits.filter((x) => q.tags.includes(x.tag));
+    const rest = hits.filter((x) => !q.tags.includes(x.tag));
     return [...chosen, ...(allTags || needle ? rest : rest.slice(0, TAG_LIMIT))];
   }, [facets, tagSearch, q.tags, allTags]);
 
@@ -170,7 +172,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
     setQ((prev) => ({ ...prev, [k]: v }));
   }
   function toggleTag(tag: string) {
-    set("tags", q.tags.includes(tag) ? q.tags.filter((t) => t !== tag) : [...q.tags, tag]);
+    set("tags", q.tags.includes(tag) ? q.tags.filter((x) => x !== tag) : [...q.tags, tag]);
   }
   function applyPreset(id: string) {
     const p = PRESETS.find((x) => x.id === id);
@@ -209,24 +211,26 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
   const activeFilters = [q.gender, q.age, q.accent, q.category, q.language, q.curated ? "curated" : "", ...q.tags].filter(Boolean).length;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} side="right" ariaLabel="Voice library" className="w-full max-w-[min(780px,100vw)] sm:w-[740px]">
+    <Drawer open={open} onOpenChange={onOpenChange} side="right" ariaLabel={t("Voice library")} className="w-full max-w-[min(780px,100vw)] sm:w-[740px]">
       <div className="flex h-full min-h-0 flex-col">
         <div className="border-b border-border px-5 pt-5 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-medium tracking-tight">Voice library</h2>
+              <h2 className="text-lg font-medium tracking-tight">{t("Voice library")}</h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {favOnly ? `${shown.length} favorites` : `${total.toLocaleString("en")} of ${(facets?.total ?? 0).toLocaleString("en")} voices`} · every voice speaks
-                your film through ElevenLabs v3 on fal
+                {favOnly
+                  ? t("{n} favorites", { n: shown.length })
+                  : t("{n} of {total} voices", { n: total.toLocaleString("en"), total: (facets?.total ?? 0).toLocaleString("en") })}{" "}
+                · {t("every voice speaks your film through ElevenLabs v3 on fal")}
               </p>
             </div>
-            <button type="button" onClick={() => onOpenChange(false)} aria-label="Close" className="flex size-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground">
+            <button type="button" onClick={() => onOpenChange(false)} aria-label={t("Close")} className="flex size-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground">
               <X className="size-4" />
             </button>
           </div>
 
           <div className="mt-4 flex gap-2">
-            <Input value={search} onChange={setSearch} placeholder="Search names, moods, characters…" leftIcon={<Search className="size-4" />} className="flex-1" />
+            <Input value={search} onChange={setSearch} placeholder={t("Search names, moods, characters…")} leftIcon={<Search className="size-4" />} className="flex-1" />
             <Button variant={showFilters ? "secondary" : "ghost"} size="md" onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} className="h-10 shrink-0">
               <SlidersHorizontal className="size-4" />
               {activeFilters > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] leading-4 text-primary-foreground">{activeFilters}</span>}
@@ -236,7 +240,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
           <div className="-mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
             {PRESETS.map((p) => (
               <Chip key={p.id} active={preset === p.id} onClick={() => applyPreset(p.id)}>
-                {p.label}
+                {t(p.label)}
               </Chip>
             ))}
           </div>
@@ -254,7 +258,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                   <div className="flex flex-wrap items-center gap-2">
                     <Tabs value={q.gender || "any"} onValueChange={(v) => set("gender", v === "any" ? "" : v)} variant="segment">
                       <TabsList>
-                        <TabsTrigger value="any">Any</TabsTrigger>
+                        <TabsTrigger value="any">{t("Any")}</TabsTrigger>
                         {(facets?.gender ?? []).map((g) => (
                           <TabsTrigger key={g} value={g}>
                             {pretty(g)}
@@ -264,7 +268,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                     </Tabs>
                     <Tabs value={q.age || "any"} onValueChange={(v) => set("age", v === "any" ? "" : v)} variant="segment">
                       <TabsList>
-                        <TabsTrigger value="any">Any age</TabsTrigger>
+                        <TabsTrigger value="any">{t("Any age")}</TabsTrigger>
                         {(facets?.age ?? []).map((a) => (
                           <TabsTrigger key={a} value={a}>
                             {pretty(a)}
@@ -277,10 +281,10 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     <Select value={q.accent || "any"} onValueChange={(v) => set("accent", v === "any" ? "" : v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Accent" />
+                        <SelectValue placeholder={t("Accent")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="any">Any accent</SelectItem>
+                        <SelectItem value="any">{t("Any accent")}</SelectItem>
                         {(facets?.accent ?? []).map((a) => (
                           <SelectItem key={a} value={a}>
                             {pretty(a)}
@@ -290,10 +294,10 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                     </Select>
                     <Select value={q.language || "any"} onValueChange={(v) => set("language", v === "any" ? "" : v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Native language" />
+                        <SelectValue placeholder={t("Native language")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="any">Any native language</SelectItem>
+                        <SelectItem value="any">{t("Any native language")}</SelectItem>
                         {(facets?.languages ?? []).map((l) => (
                           <SelectItem key={l.language} value={l.language}>
                             {pretty(l.language)} ({l.count})
@@ -303,10 +307,10 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                     </Select>
                     <Select value={q.category || "any"} onValueChange={(v) => set("category", v === "any" ? "" : v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Category" />
+                        <SelectValue placeholder={t("Category")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="any">Any category</SelectItem>
+                        <SelectItem value="any">{t("Any category")}</SelectItem>
                         {(facets?.category ?? []).map((c) => (
                           <SelectItem key={c} value={c}>
                             {pretty(c)}
@@ -316,12 +320,12 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                     </Select>
                     <Select value={q.sort} onValueChange={(v) => set("sort", v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sort" />
+                        <SelectValue placeholder={t("Sort")} />
                       </SelectTrigger>
                       <SelectContent>
                         {Object.entries(SORTS).map(([k, label]) => (
-                          <SelectItem key={k} value={k}>
-                            {label}
+                          <SelectItem key={k} value={k} label={t(label)}>
+                            {t(label)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -330,34 +334,34 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
 
                   <div>
                     <div className="mb-2 flex items-center gap-2">
-                      <span className="text-xs font-medium">Character & mood</span>
+                      <span className="text-xs font-medium">{t("Character & mood")}</span>
                       <input
                         value={tagSearch}
                         onChange={(e) => setTagSearch(e.target.value)}
-                        placeholder="find a tag"
+                        placeholder={t("find a tag")}
                         className="h-7 w-32 rounded-full border border-border bg-transparent px-3 text-xs outline-none placeholder:text-muted-foreground focus:border-border-strong"
                       />
-                      {q.tags.length > 1 && <span className="text-[11px] text-muted-foreground">all selected tags must match</span>}
+                      {q.tags.length > 1 && <span className="text-[11px] text-muted-foreground">{t("all selected tags must match")}</span>}
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {tagList.map((t) => (
-                        <Chip key={t.tag} active={q.tags.includes(t.tag)} onClick={() => toggleTag(t.tag)} count={t.count}>
-                          {pretty(t.tag)}
+                      {tagList.map((x) => (
+                        <Chip key={x.tag} active={q.tags.includes(x.tag)} onClick={() => toggleTag(x.tag)} count={x.count}>
+                          {pretty(x.tag)}
                         </Chip>
                       ))}
                       {!tagSearch && (facets?.tags.length ?? 0) > TAG_LIMIT && (
                         <button type="button" onClick={() => setAllTags((a) => !a)} className="px-2 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-                          {allTags ? "fewer" : `+${(facets?.tags.length ?? 0) - TAG_LIMIT} more`}
+                          {allTags ? t("fewer") : t("+{n} more", { n: (facets?.tags.length ?? 0) - TAG_LIMIT })}
                         </button>
                       )}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-                    <Switch checked={q.curated} onCheckedChange={(v) => set("curated", v)} label="Hand-picked narrators" />
-                    <Switch checked={favOnly} onCheckedChange={setFavOnly} label={`Favorites (${Object.keys(favs).length})`} />
+                    <Switch checked={q.curated} onCheckedChange={(v) => set("curated", v)} label={t("Hand-picked narrators")} />
+                    <Switch checked={favOnly} onCheckedChange={setFavOnly} label={t("Favorites ({n})", { n: Object.keys(favs).length })} />
                     <button type="button" onClick={reset} className="ml-auto text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
-                      Reset
+                      {t("Reset")}
                     </button>
                   </div>
                 </div>
@@ -382,8 +386,8 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
               <AudioLines className="size-4 text-accent" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">Director's choice</span>
-              <span className="block text-xs text-muted-foreground">Picks a voice that fits the character it invents</span>
+              <span className="block text-sm font-medium">{t("Director's choice")}</span>
+              <span className="block text-xs text-muted-foreground">{t("Picks a voice that fits the character it invents")}</span>
             </span>
             {!selected && <Check className="size-4 text-primary" />}
           </button>
@@ -408,7 +412,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                   <button
                     type="button"
                     onClick={() => player.toggle(v.voice_id, previewFor(v, lang))}
-                    aria-label={playingPreview ? `Pause ${name}` : `Play ${name}`}
+                    aria-label={playingPreview ? t("Pause {name}", { name }) : t("Play {name}", { name })}
                     className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-card text-foreground ring-1 ring-border transition-transform active:scale-95"
                   >
                     {playingPreview ? <Pause className="size-4 fill-current" /> : <Play className="size-4 translate-x-px fill-current" />}
@@ -420,7 +424,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                       <span className="truncate text-sm font-medium">{name}</span>
                       {v.curated && (
                         <span className="flex shrink-0 items-center gap-1 rounded-full bg-accent/15 px-1.5 text-[10px] text-accent">
-                          <Sparkles className="size-2.5" /> picked
+                          <Sparkles className="size-2.5" /> {t("picked")}
                         </span>
                       )}
                       {tagline && <span className="hidden truncate text-xs text-muted-foreground sm:inline">{tagline}</span>}
@@ -432,7 +436,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                   <button
                     type="button"
                     onClick={() => toggleFav(v)}
-                    aria-label={favs[v.voice_id] ? "Remove from favorites" : "Add to favorites"}
+                    aria-label={favs[v.voice_id] ? t("Remove from favorites") : t("Add to favorites")}
                     className={cn("flex size-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted", favs[v.voice_id] ? "text-rose-500" : "text-muted-foreground")}
                   >
                     <Heart className={cn("size-4", favs[v.voice_id] && "fill-current")} />
@@ -440,8 +444,8 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                   <button
                     type="button"
                     onClick={() => audition(v)}
-                    aria-label={`Hear ${name} read your topic`}
-                    title="Hear it read your topic"
+                    aria-label={t("Hear {name} read your topic", { name })}
+                    title={t("Hear it read your topic")}
                     className={cn("flex size-8 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-muted", playingLine ? "text-primary" : "text-muted-foreground")}
                   >
                     {auditioning === v.voice_id ? <Loader2 className="size-4 animate-spin" /> : <Mic className="size-4" />}
@@ -457,7 +461,7 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
                     className="shrink-0"
                   >
                     {isSel ? <Check className="size-3.5" /> : null}
-                    {isSel ? "Chosen" : "Use"}
+                    {isSel ? t("Chosen") : t("Use")}
                   </Button>
                 </motion.li>
               );
@@ -466,15 +470,15 @@ export function VoiceLibrary({ open, onOpenChange, lang, topic, selected, onSele
 
           {!loading && shown.length === 0 && !error && (
             <p className="px-3 py-10 text-center text-sm text-muted-foreground">
-              No voices match.{" "}
+              {t("No voices match.")}{" "}
               <button type="button" onClick={reset} className="text-foreground underline underline-offset-2">
-                Reset filters
+                {t("Reset filters")}
               </button>
             </p>
           )}
           {loading && (
             <div className="flex justify-center py-6">
-              <TextShimmer className="text-sm">Finding voices…</TextShimmer>
+              <TextShimmer className="text-sm">{t("Finding voices…")}</TextShimmer>
             </div>
           )}
           <div ref={sentinel} className="h-1" />

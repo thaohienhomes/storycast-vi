@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { languageName, nativeLanguage, type CastMember, type Film } from "@/lib/api";
 import { SHARING, owned } from "@/lib/share";
 import { AgentPromptButton } from "@/components/app/agent-button";
+import { useT } from "@/lib/i18n";
 
 const LENGTHS: Record<string, [number, number]> = { any: [0, 1e9], short: [0, 90], medium: [90, 240], long: [240, 1e9] };
 const SORTS: Record<string, { label: string; fn: (a: Film, b: Film) => number }> = {
@@ -64,12 +65,13 @@ function pageList(page: number, pages: number): (number | "…")[] {
 }
 
 function Pagination({ page, pages, onPage }: { page: number; pages: number; onPage: (n: number) => void }) {
+  const { t } = useT();
   if (pages <= 1) return null;
   const step =
     "grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
   return (
-    <nav aria-label="Pages" className="flex items-center justify-center gap-1.5">
-      <button type="button" className={step} disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label="Previous page">
+    <nav aria-label={t("Pages")} className="flex items-center justify-center gap-1.5">
+      <button type="button" className={step} disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={t("Previous page")}>
         <ChevronLeft className="size-4" />
       </button>
       {pageList(page, pages).map((n, i) =>
@@ -92,7 +94,7 @@ function Pagination({ page, pages, onPage }: { page: number; pages: number; onPa
           </button>
         ),
       )}
-      <button type="button" className={step} disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label="Next page">
+      <button type="button" className={step} disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={t("Next page")}>
         <ChevronRight className="size-4" />
       </button>
     </nav>
@@ -126,6 +128,7 @@ function Row({ children, className }: { children: React.ReactNode; className?: s
 }
 
 export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; loading: boolean; cast?: CastMember[] }) {
+  const { t } = useT();
   const [f, setF] = useState<Filters>(readUrl);
 
   const counts = useMemo(() => {
@@ -144,8 +147,8 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
 
   useEffect(() => writeUrl(f), [f]);
   useEffect(() => {
-    const t = setTimeout(() => setF((prev) => (prev.q === search ? prev : { ...prev, q: search, page: 1 })), 200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setF((prev) => (prev.q === search ? prev : { ...prev, q: search, page: 1 })), 200);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) =>
@@ -207,28 +210,33 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">Explore</p>
-              <h1 className="mt-1 text-4xl font-semibold tracking-tight md:text-5xl">Stories to watch</h1>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">{t("Explore")}</p>
+              <h1 className="mt-1 text-4xl font-semibold tracking-tight md:text-5xl">{t("Stories to watch")}</h1>
             </div>
             <AgentPromptButton />
           </div>
           <Tabs value={f.source} onValueChange={(v) => set("source", v as Source)} variant="segment" className="mt-4">
             <TabsList>
-              <TabsTrigger value="all">Everything</TabsTrigger>
-              {SHARING && <TabsTrigger value="community">Shared by people{counts.community ? ` · ${counts.community}` : ""}</TabsTrigger>}
-              <TabsTrigger value="mine">My stories{mineCount ? ` · ${mineCount}` : ""}</TabsTrigger>
+              <TabsTrigger value="all">{t("Everything")}</TabsTrigger>
+              {SHARING && <TabsTrigger value="community">{t("Shared by people")}{counts.community ? ` · ${counts.community}` : ""}</TabsTrigger>}
+              <TabsTrigger value="mine">{t("My stories")}{mineCount ? ` · ${mineCount}` : ""}</TabsTrigger>
             </TabsList>
           </Tabs>
           <p className="mt-2 text-sm text-muted-foreground">
             {loading
-              ? "Loading the library…"
-              : `${films.length} films · ${facets.narrators.length} narrators · ${facets.langs.length} languages · ${Math.round(films.reduce((s, x) => s + x.duration, 0) / 60)} min of story`}
+              ? t("Loading the library…")
+              : t("{films} films · {narrators} narrators · {langs} languages · {min} min of story", {
+                  films: films.length,
+                  narrators: facets.narrators.length,
+                  langs: facets.langs.length,
+                  min: Math.round(films.reduce((s, x) => s + x.duration, 0) / 60),
+                })}
           </p>
         </div>
         <Input
           value={search}
           onChange={setSearch}
-          placeholder="Search by topic, narrator, language or a line from the script…"
+          placeholder={t("Search by topic, narrator, language or a line from the script…")}
           leftIcon={<Search className="size-4" />}
           className="w-full"
           classNames={{ field: "h-12" }}
@@ -237,12 +245,12 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
 
       {facets.narrators.length > 1 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold tracking-tight">Narrators</h2>
+          <h2 className="mb-3 text-sm font-semibold tracking-tight">{t("Narrators")}</h2>
           <Row className="gap-4 pt-1 pb-1">
             {facets.narrators.map((n) => {
               const on = f.narrator === n.id;
               return (
-                <button key={n.id} type="button" onClick={() => toggle("narrator", n.id)} aria-pressed={on} title={`${n.n} film${n.n === 1 ? "" : "s"}`} className="group flex w-16 shrink-0 flex-col items-center gap-1.5">
+                <button key={n.id} type="button" onClick={() => toggle("narrator", n.id)} aria-pressed={on} title={n.n === 1 ? t("1 film") : t("{n} films", { n: n.n })} className="group flex w-16 shrink-0 flex-col items-center gap-1.5">
                   <span
                     className={cn(
                       "size-16 overflow-hidden rounded-full bg-muted ring-2 ring-offset-2 ring-offset-background transition-all",
@@ -265,14 +273,14 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
 
       {facets.langs.length > 1 && (
         <section>
-          <h2 className="mb-3 text-sm font-semibold tracking-tight">Watch in</h2>
+          <h2 className="mb-3 text-sm font-semibold tracking-tight">{t("Watch in")}</h2>
           <Row>
             <Pill active={f.lang === "any"} onClick={() => set("lang", "any")} count={films.length}>
-              All languages
+              {t("All languages")}
             </Pill>
             {facets.langs.map((l) => (
               <Pill key={l.id} active={f.lang === l.id} onClick={() => toggle("lang", l.id)} count={l.n}>
-                <span title={languageName(l.id)}>{nativeLanguage(l.id)}</span>
+                <span title={t(languageName(l.id))}>{nativeLanguage(l.id)}</span>
               </Pill>
             ))}
           </Row>
@@ -283,19 +291,19 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
         <div className="flex flex-wrap items-center gap-2">
           <Tabs value={f.length} onValueChange={(v) => set("length", v)} variant="segment">
             <TabsList>
-              <TabsTrigger value="any">Any length</TabsTrigger>
-              <TabsTrigger value="short">Under 1½ min</TabsTrigger>
-              <TabsTrigger value="medium">1½–4 min</TabsTrigger>
-              <TabsTrigger value="long">4+ min</TabsTrigger>
+              <TabsTrigger value="any">{t("Any length")}</TabsTrigger>
+              <TabsTrigger value="short">{t("Under 1½ min")}</TabsTrigger>
+              <TabsTrigger value="medium">{t("1½–4 min")}</TabsTrigger>
+              <TabsTrigger value="long">{t("4+ min")}</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <Select value={f.voice} onValueChange={(v) => set("voice", v)}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Voice" />
+                <SelectValue placeholder={t("Voice")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any voice</SelectItem>
+                <SelectItem value="any">{t("Any voice")}</SelectItem>
                 {facets.voices.map((v) => (
                   <SelectItem key={v.id} value={v.id} label={v.id.split(" - ")[0]}>
                     {v.id.split(" - ")[0]} <span className="text-muted-foreground">{v.n}</span>
@@ -305,12 +313,12 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
             </Select>
             <Select value={f.sort} onValueChange={(v) => set("sort", v)}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sort" />
+                <SelectValue placeholder={t("Sort")} />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(SORTS).map(([k, s]) => (
-                  <SelectItem key={k} value={k}>
-                    {s.label}
+                  <SelectItem key={k} value={k} label={t(s.label)}>
+                    {t(s.label)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -318,10 +326,10 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
             <Tabs value={f.view} onValueChange={(v) => set("view", v as Filters["view"])} variant="segment">
               <TabsList>
                 <TabsTrigger value="grid">
-                  <LayoutGrid className="size-4" aria-label="Grid" />
+                  <LayoutGrid className="size-4" aria-label={t("Grid")} />
                 </TabsTrigger>
                 <TabsTrigger value="list">
-                  <List className="size-4" aria-label="List" />
+                  <List className="size-4" aria-label={t("List")} />
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -336,7 +344,7 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
               count={s.n}
               onClick={() => set("styles", f.styles.includes(s.id) ? f.styles.filter((x) => x !== s.id) : [...f.styles, s.id])}
             >
-              {s.label}
+              {t(s.label)}
             </Pill>
           ))}
         </Row>
@@ -344,12 +352,12 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
 
       <div className="-mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
         <p>
-          {loading ? "…" : `${shown.length} film${shown.length === 1 ? "" : "s"} · ${totalMinutes} min`}
-          {pages > 1 && ` · page ${page} of ${pages}`}
+          {loading ? "…" : `${shown.length === 1 ? t("1 film") : t("{n} films", { n: shown.length })} · ${totalMinutes} ${t("min")}`}
+          {pages > 1 && ` · ${t("page {page} of {pages}", { page, pages })}`}
         </p>
         {active > 0 && (
           <button type="button" onClick={clear} className="inline-flex items-center gap-1 hover:text-foreground">
-            <X className="size-3.5" /> Clear {active} filter{active > 1 ? "s" : ""}
+            <X className="size-3.5" /> {active > 1 ? t("Clear {n} filters", { n: active }) : t("Clear 1 filter")}
           </button>
         )}
       </div>
@@ -364,13 +372,13 @@ export function FilmsPage({ films: all, loading, cast = [] }: { films: Film[]; l
         <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-border-strong p-12 text-center">
           <p className="text-sm text-muted-foreground">
             {f.source === "mine" && !films.length
-              ? "Films you make or share in this browser show up here."
+              ? t("Films you make or share in this browser show up here.")
               : f.source === "community" && !films.length
-                ? "No shared stories yet. Make one and share it to Explore."
-                : "No films match these filters."}
+                ? t("No shared stories yet. Make one and share it to Explore.")
+                : t("No films match these filters.")}
           </p>
           <button type="button" onClick={clear} className="text-sm font-medium hover:underline">
-            Show all films
+            {t("Show all films")}
           </button>
         </div>
       ) : (

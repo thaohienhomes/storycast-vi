@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { Languages, Play } from "lucide-react";
 import { useState } from "react";
 import { navigate } from "@/lib/router";
@@ -10,6 +11,7 @@ export function fmtDuration(s: number) {
 }
 
 export function FilmCard({ film, layout = "grid" }: { film: Film; layout?: "grid" | "list" }) {
+  const { t } = useT();
   const [hover, setHover] = useState(false);
   const list = layout === "list";
   const to = `/films/${film.id}`;
@@ -45,7 +47,7 @@ export function FilmCard({ film, layout = "grid" }: { film: Film; layout?: "grid
           <span className="font-semibold">{film.title}</span> <span className="text-muted-foreground">{film.subtitle}</span>
         </p>
         <p className="mt-1 truncate text-xs text-muted-foreground">
-          {[languageName(film.lang), film.narrator, film.style_label].filter(Boolean).join(" · ")}
+          {[t(languageName(film.lang)), film.narrator, t(film.style_label ?? "")].filter(Boolean).join(" · ")}
         </p>
         {list && film.script[0] && <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/80">{film.script[0]}</p>}
       </div>

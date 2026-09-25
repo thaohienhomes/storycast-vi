@@ -19,6 +19,7 @@ import {
   SPRING_SWAP,
 } from "@/lib/ease";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export type TodoItemStatus =
   | "pending"
@@ -199,7 +200,7 @@ function TodoStatusIcon({
 
 export function TodoList({
   items,
-  title = "To-dos",
+  title,
   open,
   defaultOpen = true,
   onOpenChange,
@@ -207,6 +208,7 @@ export function TodoList({
   maxHeight = 248,
   className,
 }: TodoListProps) {
+  const { t } = useT();
   const reduce = useReducedMotion() ?? false;
   const baseId = useId();
   const triggerId = `${baseId}-trigger`;
@@ -257,7 +259,7 @@ export function TodoList({
 
   return (
     <section
-      aria-label="Agent task list"
+      aria-label={t("Agent task list")}
       className={cn(
         "w-full overflow-hidden rounded-2xl border border-border/70",
         className,
@@ -273,7 +275,7 @@ export function TodoList({
       >
         <TodoHeaderIcon complete={allComplete} />
         <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/90">
-          {title}
+          {title ?? t("To-dos")}
         </h3>
         <span
           className={cn(
@@ -282,7 +284,7 @@ export function TodoList({
           )}
         >
           <span className="sr-only">
-            {completed} of {items.length} tasks completed
+            {t("{done} of {total} tasks completed", { done: completed, total: items.length })}
           </span>
           <span aria-hidden="true" className="inline-flex">
             <ActionSwapRollText value={String(completed)}>
@@ -337,7 +339,7 @@ export function TodoList({
                     className="flex min-h-9 items-center gap-2.5 rounded-xl px-1.5 py-1"
                   >
                     <TodoStatusIcon status={status} progress={item.progress} />
-                    <span className="sr-only">{statusLabel(status)}: </span>
+                    <span className="sr-only">{t(statusLabel(status))}: </span>
                     <span
                       className={cn(
                         "min-w-0 flex-1 truncate text-sm leading-5",
@@ -377,7 +379,7 @@ export function TodoList({
             </ol>
           ) : (
             <p className="px-1.5 py-2 text-sm text-muted-foreground">
-              No tasks yet
+              {t("No tasks yet")}
             </p>
           )}
         </div>

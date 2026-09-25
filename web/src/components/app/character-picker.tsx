@@ -104,14 +104,14 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
 
         {shown.map((c) => (
           <div key={c.id} className="group/card relative">
-            <button type="button" onClick={() => onChange({ kind: "cast", id: c.id })} aria-pressed={isCast(c.id)} title={c.personality} className="block w-full text-left">
+            <button type="button" onClick={() => onChange({ kind: "cast", id: c.id })} aria-pressed={isCast(c.id)} title={t(c.personality)} className="block w-full text-left">
               <TiltCard max={6} className="rounded-xl border border-border bg-card">
                 <img src={c.thumb} alt="" loading="lazy" className="aspect-[3/4] w-full object-cover" />
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-2 pt-8 pb-1.5">
                   <span className="block truncate text-[12.5px] font-semibold text-white">{c.name}</span>
-                  <span className="block truncate text-[10.5px] text-white/70">{c.style_label}</span>
+                  <span className="block truncate text-[10.5px] text-white/70">{t(c.style_label)}</span>
                   <span className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 group-hover/card:grid-rows-[1fr]">
-                    <span className="overflow-hidden pt-0.5 text-[10.5px] leading-snug text-white/85">{c.personality}</span>
+                    <span className="overflow-hidden pt-0.5 text-[10.5px] leading-snug text-white/85">{t(c.personality)}</span>
                   </span>
                 </span>
               </TiltCard>
@@ -121,7 +121,7 @@ export function CharacterPicker({ cast, groups, value, onChange, uploadPreview, 
               onClick={() =>
                 setView({
                   items: [
-                    { url: c.hero, kind: "image", caption: `${c.name} · ${c.personality}` },
+                    { url: c.hero, kind: "image", caption: `${c.name} · ${t(c.personality)}` },
                     { url: c.sheet, kind: "image", caption: `${c.name} · model sheet` },
                   ],
                   i: 0,

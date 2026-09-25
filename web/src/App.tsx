@@ -1,5 +1,5 @@
 import { useT } from "@/lib/i18n";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CreateForm } from "@/components/app/create-form";
 import { FilmsPage } from "@/components/app/films-page";
 import { WatchPage } from "@/components/app/watch-page";
@@ -28,6 +28,10 @@ function remember(id: string | null) {
 
 export default function App() {
   const { t } = useT();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   const [config, setConfig] = useState<Config | null>(null);
   const [films, setFilms] = useState<Film[]>([]);
   const [filmsLoading, setFilmsLoading] = useState(true);
@@ -69,14 +73,14 @@ export default function App() {
       const final = await done;
       show(final);
       if (final.status === "done") {
-        showToast({ status: "success", title: "Your film is ready", description: final.result?.title, duration: 8000 });
+        showToast({ status: "success", title: t("Your film is ready"), description: final.result?.title, duration: 8000 });
         loadFilms();
       } else {
         if (/401|403|key/i.test(final.error || "")) setKeyOpen(true);
-        showToast({ status: "error", title: "Production stopped", description: final.error?.slice(0, 140), duration: 8000 });
+        showToast({ status: "error", title: t("Production stopped"), description: final.error?.slice(0, 140), duration: 8000 });
       }
     },
-    [loadFilms, show, showToast],
+    [loadFilms, show, showToast, t],
   );
 
   const onEvent = useCallback((e: JobEvent, rec: FilmRecord) => {
@@ -88,7 +92,7 @@ export default function App() {
     api
       .config()
       .then(setConfig)
-      .catch(() => showToast({ status: "error", title: "Could not load the studio data" }));
+      .catch(() => showToast({ status: "error", title: tRef.current("Could not load the studio data") }));
     loadFilms();
     let last: string | null = null;
     try {
@@ -123,12 +127,12 @@ export default function App() {
   async function start(body: NewJob) {
     if (!falKey()) {
       setKeyOpen(true);
-      throw new Error("Connect your fal key first");
+      throw new Error(t("Connect your fal key first"));
     }
     const { rec, done } = await api.create(body, onEvent);
     if (!window.location.pathname.startsWith("/create")) navigate("/create");
     follow(rec, done);
-    showToast({ status: "loading", title: "Production started", description: "Keep this tab open while the film is made", duration: 6000 });
+    showToast({ status: "loading", title: t("Production started"), description: t("Keep this tab open while the film is made"), duration: 6000 });
     requestAnimationFrame(() => document.getElementById("production")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
 
@@ -138,7 +142,7 @@ export default function App() {
       const { rec, done } = await api.resume(job.id, onEvent);
       follow(rec, done);
     } catch (e) {
-      showToast({ status: "error", title: e instanceof Error ? e.message : String(e) });
+      showToast({ status: "error", title: t(e instanceof Error ? e.message : String(e)) });
     }
   }
 
@@ -150,7 +154,7 @@ export default function App() {
 
   return (
     <div className="min-h-dvh">
-      <Header hasKey={hasKey} onKey={() => setKeyOpen(true)} onDisconnect={() => (clearFalKey(), showToast({ status: "success", title: "fal key removed from this browser", duration: 3000 }))} />
+      <Header hasKey={hasKey} onKey={() => setKeyOpen(true)} onDisconnect={() => (clearFalKey(), showToast({ status: "success", title: t("fal key removed from this browser"), duration: 3000 }))} />
       <main className="mx-auto flex max-w-7xl flex-col gap-10 px-4 pb-24 sm:px-6">
         {path.startsWith("/films/") ? (
           <WatchPage id={decodeURIComponent(path.slice("/films/".length))} films={everything} cast={config?.characters ?? []} loading={filmsLoading} />
@@ -169,7 +173,7 @@ export default function App() {
             </header>
             {job && busy && production}
             {config ? (
-              <CreateForm config={config} busy={busy} onStart={start} onError={(message) => showToast({ status: "error", title: message })} />
+              <CreateForm config={config} busy={busy} onStart={start} onError={(message) => showToast({ status: "error", title: t(message) })} />
             ) : (
               <div className="h-96 animate-pulse rounded-3xl border border-border bg-card/40" />
             )}
@@ -182,13 +186,13 @@ export default function App() {
           </>
         )}
       </main>
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">Storycast · every frame, voice and cut is made on fal</footer>
+      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">{t("Storycast · every frame, voice and cut is made on fal")}</footer>
       <KeyDialog
         open={keyOpen}
         onClose={() => setKeyOpen(false)}
         onConnected={() => {
           setKeyOpen(false);
-          showToast({ status: "success", title: "fal key connected", description: "You can make films now", duration: 4000 });
+          showToast({ status: "success", title: t("fal key connected"), description: t("You can make films now"), duration: 4000 });
         }}
       />
       <AnimatedToastStack toasts={toasts} onDismiss={dismissToast} position="bottom-right" fixed portal />

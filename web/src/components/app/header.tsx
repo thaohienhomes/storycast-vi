@@ -26,7 +26,7 @@ function KeyButton({ hasKey, onKey, onDisconnect }: KeyProps) {
     <span className="ml-1 inline-flex h-10 shrink-0 items-center gap-1 rounded-full border border-border pr-1 pl-3 text-sm text-muted-foreground sm:ml-2">
       <span className="size-1.5 rounded-full bg-success" />
       <span className="hidden sm:inline">fal key</span>
-      <button type="button" onClick={onDisconnect} title={t("Remove the key from this browser")} aria-label="Remove the fal key" className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
+      <button type="button" onClick={onDisconnect} title={t("Remove the key from this browser")} aria-label={t("Remove the fal key")} className="grid size-8 place-items-center rounded-full hover:bg-muted hover:text-foreground">
         <X className="size-3.5" />
       </button>
     </span>
@@ -63,7 +63,7 @@ export function Header({ hasKey, onKey, onDisconnect }: KeyProps) {
             type="button"
             onClick={() => setLang(lang === "vi" ? "en" : "vi")}
             title={lang === "vi" ? "Switch to English" : "Chuyển sang tiếng Việt"}
-            aria-label="Language"
+            aria-label={t("Language")}
             className="ml-1 grid h-10 shrink-0 place-items-center rounded-full border border-border px-3 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground sm:ml-2"
           >
             {lang === "vi" ? "VI" : "EN"}

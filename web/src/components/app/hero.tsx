@@ -124,7 +124,7 @@ export function Hero({ cast, films }: { cast: CastMember[]; films: Film[] }) {
             <Link key={c.id} to={`/create?character=${c.id}`} className="group/cast block w-40 shrink-0 overflow-hidden rounded-2xl border border-border bg-card text-left transition-colors hover:border-border-strong">
               <img src={c.thumb} alt={c.name} loading="lazy" className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover/cast:scale-[1.04]" />
               <span className="block px-3 pt-2 text-sm font-medium">{c.name}</span>
-              <span className="block truncate px-3 pb-2.5 text-[11px] text-muted-foreground">{c.personality}</span>
+              <span className="block truncate px-3 pb-2.5 text-[11px] text-muted-foreground">{t(c.personality)}</span>
             </Link>
           ))}
         </Marquee>

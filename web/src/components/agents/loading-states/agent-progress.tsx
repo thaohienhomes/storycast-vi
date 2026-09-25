@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { EASE_IN_OUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 const GRID_CELLS = [
   { id: "top-left", delay: 0 },
@@ -33,12 +34,14 @@ function formatElapsed(totalSeconds: number) {
 }
 
 export function AgentProgress({
-  label = "Churning",
+  label: labelProp,
   elapsedSeconds,
   initialSeconds = 0,
   running = true,
   className,
 }: AgentProgressProps) {
+  const { t } = useT();
+  const label = labelProp ?? t("Churning");
   const reduce = useReducedMotion() ?? false;
   const [internalSeconds, setInternalSeconds] = useState(initialSeconds);
 
@@ -58,7 +61,7 @@ export function AgentProgress({
   return (
     <span
       role="status"
-      aria-label={`${label}, in progress`}
+      aria-label={t("{label}, in progress", { label })}
       className={cn(
         "inline-flex items-center gap-3 font-mono text-sm text-muted-foreground",
         className,
